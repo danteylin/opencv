@@ -13,7 +13,7 @@ while(True):
     img2 = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
     A = cv2.getTrackbarPos('A','img1')
     B = cv2.getTrackbarPos('B','img1')
-    lower_blue = np.array([A,0,0])
+    lower_blue = np.array([A,50,50])
     upper_blue = np.array([B,255,255])
     # Threshold the HSV image to get only blue colors
     mask = cv2.inRange(img2, lower_blue, upper_blue)
