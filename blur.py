@@ -2,13 +2,19 @@ import cv2 as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
+kernel = np.ones((5, 5), np.uint8)
 img = cv.imread('./SKADI.png',0)
 ret3, th3 = cv.threshold(img, 0, 255, cv.THRESH_TOZERO+cv.THRESH_OTSU)
 roi = th3[200:400,400:800]
+erosion = cv.erode(img, kernel, iterations=1)
+dilation = cv.dilate(th3, kernel, iterations=1)
+gradient = cv.morphologyEx(img, cv.MORPH_GRADIENT, kernel)
 gauss = cv.GaussianBlur(roi, (11, 11), 3)
-th3[200:400,400:800]=gauss
+#th3[200:400,400:800]=gauss
 cv.imshow('img',img)
 cv.imshow('th3',th3)
-cv.imshow('gauss',gauss)
+cv.imshow('erosion',erosion)
+cv.imshow('dilation',dilation)
+cv.imshow('gradient',gradient)
 cv.waitKey(0)
 cv.destroyAllWindows() 
