@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-img = cv2.imread('./SKADI.png')
+img = cv2.imread('./test1.jpg')
 
 lower = cv2.pyrDown(img)
 lower1 = cv2.pyrDown(lower)
