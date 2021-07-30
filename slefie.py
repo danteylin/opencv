@@ -1,70 +1,62 @@
-import cv2
-import mediapipe as mp
-import numpy as np
-mp_drawing = mp.solutions.drawing_utils
-mp_selfie_segmentation = mp.solutions.selfie_segmentation
-# For static images:
-IMAGE_FILES = []
-BG_COLOR = (192, 192, 192) # gray
-MASK_COLOR = (255, 255, 255) # white
-with mp_selfie_segmentation.SelfieSegmentation(
-    model_selection=0) as selfie_segmentation:
-  for idx, file in enumerate(IMAGE_FILES):
-    image = cv2.imread(file)
-    image_height, image_width, _ = image.shape
-    # Convert the BGR image to RGB before processing.
-    results = selfie_segmentation.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-    # Draw selfie segmentation on the background image.
-    # To improve segmentation around boundaries, consider applying a joint
-    # bilateral filter to "results.segmentation_mask" with "image".
-    condition = np.stack((results.segmentation_mask,) * 3, axis=-1) > 0.1
-    # Generate solid color images for showing the output selfie segmentation mask.
-    fg_image = np.zeros(image.shape, dtype=np.uint8)
-    fg_image[:] = MASK_COLOR
-    bg_image = np.zeros(image.shape, dtype=np.uint8)
-    bg_image[:] = BG_COLOR
-    output_image = np.where(condition, fg_image, bg_image)
-    cv2.imwrite('/tmp/selfie_segmentation_output' + str(idx) + '.png', output_image)
-# For webcam input:
-BG_COLOR = (192, 192, 192) # gray
-cap = cv2.VideoCapture(0)
+import serial
+import time
+import logging
 
-with mp_selfie_segmentation.SelfieSegmentation(
-    model_selection=1) as selfie_segmentation:
-  bg_image = None
-  image2 = cv2.imread('./SKADI.png')
-  image2 = cv2.resize(image2,(640,480))
-  bg_image = cv2.GaussianBlur(image2,(11,11),0)
-  while cap.isOpened():
-    success, image = cap.read()
-    if not success:
-      print("Ignoring empty camera frame.")
-      # If loading a video, use 'break' instead of 'continue'.
-      continue
-    # Flip the image horizontally for a later selfie-view display, and convert
-    # the BGR image to RGB.
-    image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
-    # To improve performance, optionally mark the image as not writeable to
-    # pass by reference.
-    image.flags.writeable = False
-    results = selfie_segmentation.process(image)
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    # Draw selfie segmentation on the background image.
-    # To improve segmentation around boundaries, consider applying a joint
-    # bilateral filter to "results.segmentation_mask" with "image".
-    condition = np.stack(
-      (results.segmentation_mask,) * 3, axis=-1) > 0.1
-    # The background can be customized.
-    #   a) Load an image (with the same width and height of the input image) to
-    #      be the background, e.g., bg_image = cv2.imread('/path/to/image/file')
-    #   b) Blur the input image by applying image filtering, e.g.,
-    #      bg_image = cv2.GaussianBlur(image,(55,55),0)
-    if bg_image is None:
-      bg_image = np.zeros(image.shape, dtype=np.uint8)
-      bg_image[:] = BG_COLOR
-    output_image = np.where(condition, image, bg_image)
-    cv2.imshow('MediaPipe Selfie Segmentation', output_image)
-    if cv2.waitKey(5) & 0xFF == 27:
-      break
-cap.release()
+class SerialObject:
+    """
+    Allow to transmit data to a Serial Device like Arduino.
+    Example send $255255000
+    """
+    def __init__(self, portNo, baudRate=9600, digits=1):
+        """
+        Initialize the serial object.
+        :param portNo: Port Number.
+        :param baudRate: Baud Rate.
+        :param digits: Number of digits per value to send
+        """
+        self.portNo = portNo
+        self.baudRate = baudRate
+        self.digits = digits
+        try:
+            self.ser = serial.Serial(self.portNo, self.baudRate)
+            print("Serial Device Connected")
+        except:
+            logging.warning("Serial Device Not Connected")
+
+    def sendData(self, data):
+        """
+        Send data to the Serial device
+        :param data: list of values to send
+        """
+        myString = "$"
+        for d in data:
+            myString += str(int(d)).zfill(self.digits)
+        try:
+            self.ser.write(myString.encode())
+            return True
+        except:
+            return False
+
+    def getData(self):
+        """
+        :param numOfVals: number of vals to retrieve
+        :return: list of data received
+        """
+        data = self.ser.readline()
+        data = data.decode("utf-8")
+        data = data.split('#')
+        dataList = []
+        [dataList.append(d) for d in data]
+        return dataList[:-1]
+
+def main():
+    mySerial = SerialObject("COM3", 9600, 1)
+    while True:
+        mySerial.sendData([1, 1, 1, 1, 1])
+        time.sleep(2)
+        mySerial.sendData([0, 0, 0, 0, 0])
+        time.sleep(2)
+
+
+if __name__ == "__main__":
+    main()
