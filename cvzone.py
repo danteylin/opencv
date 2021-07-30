@@ -48,12 +48,12 @@ class FaceDetector:
         return img, bboxs
 
 def main():
-    # cap = cv2.VideoCapture(0)
+    #cap = cv2.VideoCapture(0)
     detector = FaceDetector()
     detector = FaceDetector(model_selection=1)
     while True:
-        img = cv2.imread('./kkr.jpg')
-        # success, img = cap.read()
+        img = cv2.imread('./FACE.jpg')
+        #success, img = cap.read()
         img, bboxs = detector.findFaces(img)
         if bboxs:
             # bboxInfo - "id","bbox","score","center"
