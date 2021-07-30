@@ -158,7 +158,7 @@ class HandDetector:
 
 def main():
     cap = cv2.VideoCapture(0)
-    detector = HandDetector(detectionCon=0.8, maxHands=2)
+    detector = HandDetector(detectionCon=0.5, maxHands=1)
     while True:
         # Get image frame
         #img = cv2.imread('kkr.jpg')
@@ -170,15 +170,21 @@ def main():
             bbox = bboxInfo['bbox']
             fingers = detector.fingersUp()
             totalFingers = fingers.count(1)
-            cv2.putText(img, f'Fingers:{totalFingers}', (bbox[0] + 200, bbox[1] - 30),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
-            distance, img, info = detector.findDistance(8, 12, img)
-            cv2.putText(img, f'Dist:{int(distance)}', (bbox[0] + 400, bbox[1] - 30),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            if totalFingers == 0:
+                cv2.putText(img,'Rock',(bbox[0] + 200, bbox[1] - 30),cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            elif totalFingers ==5:
+                cv2.putText(img,'Paper',(bbox[0] + 200, bbox[1] - 30),cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            elif fingers[1] == fingers[2] == 1:
+                 cv2.putText(img,'Scissors',(bbox[0] + 200, bbox[1] - 30),cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            #cv2.putText(img, f'Fingers:{totalFingers}', (bbox[0] + 200, bbox[1] - 30),
+             #       cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+          #  distance, img, info = detector.findDistance(8, 12, img)
+           # cv2.putText(img, f'Dist:{int(distance)}', (bbox[0] + 400, bbox[1] - 30),
+                    #cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         # Find Hand Type
-            myHandType = detector.handType()
-            cv2.putText(img, f'Hand:{myHandType}', (bbox[0], bbox[1] - 30),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+            #myHandType = detector.handType()
+            #cv2.putText(img, f'Hand:{myHandType}', (bbox[0], bbox[1] - 30),
+                    #cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
         cv2.imshow("Image", img)
         k= cv2.waitKey(1)
         if k == 27:
